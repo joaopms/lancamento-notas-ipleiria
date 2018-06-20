@@ -1,7 +1,12 @@
 import requests,time,json,re,os,sys,hashlib
+from twilio.rest import Client
 
 USERNAME = ""
 PASSWORD = ""
+TWILIO_SID = ""
+TWILIO_TOKEN = ""
+TWILIO_TO_NUMBER = ""
+TWILIO_FROM_NUMBER = ""
 WAITING = 10 #10 minutos
 
 UCS = [
@@ -13,6 +18,7 @@ UCS = [
 
 hashpath = os.path.join(sys.path[0],'hashfiles.dat')
 s = requests.Session()
+twilio_client = Client(TWILIO_SID, TWILIO_TOKEN)
 
 def login():
     headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -75,6 +81,12 @@ def save_hashfile(content):
     stream.write(content)
     stream.close()    
 
+def send_message(message):
+    twilio_client.messages.create(
+        to=TWILIO_TO_NUMBER,
+        from_=TWILIO_FROM_NUMBER,
+        body=message)
+
 if __name__ == "__main__":
     if login():
         while True:
@@ -85,6 +97,7 @@ if __name__ == "__main__":
                 if x['uc'] in hashes:
                     if hashes[x['uc']] != hash:
                         print("\n>>> Houve alteracoes a " + str(x['uc']) + "!!!")
+                        send_message("Houve alteracoes a " + str(x['uc']) + "!!!")
                 hashes[x['uc']] = hash
 
             save_hashfile(json.dumps(hashes))
