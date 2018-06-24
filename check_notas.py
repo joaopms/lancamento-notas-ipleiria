@@ -1,13 +1,13 @@
 import requests,time,json,re,os,sys,hashlib
-from twilio.rest import Client
+from telegram.ext import Updater
 
 USERNAME = ""
 PASSWORD = ""
-TWILIO_SID = ""
-TWILIO_TOKEN = ""
-TWILIO_TO_NUMBER = ""
-TWILIO_FROM_NUMBER = ""
+TELEGRAM_TOKEN = ""
+TELEGRAM_OWNER = ""
 WAITING = 10 #10 minutos
+
+bot = None
 
 UCS = [
         {'uc':'SO','url':'https://ead.ipleiria.pt/2017-18/course/view.php?id=3659'},
@@ -18,7 +18,6 @@ UCS = [
 
 hashpath = os.path.join(sys.path[0],'hashfiles.dat')
 s = requests.Session()
-twilio_client = Client(TWILIO_SID, TWILIO_TOKEN)
 
 def login():
     headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -82,12 +81,14 @@ def save_hashfile(content):
     stream.close()    
 
 def send_message(message):
-    twilio_client.messages.create(
-        to=TWILIO_TO_NUMBER,
-        from_=TWILIO_FROM_NUMBER,
-        body=message)
+    bot.send_message(TELEGRAM_OWNER, message)
 
 if __name__ == "__main__":
+    # Start the Telegram bot
+    updater = Updater(TELEGRAM_TOKEN)
+    bot = updater.bot
+    updater.start_polling()
+
     if login():
         while True:
             hashes = json.loads(return_hashfile())
